@@ -1,5 +1,10 @@
+import logging
+import sys
+
 import httpx
 from mcp.server.fastmcp import FastMCP
+
+logging.basicConfig(stream=sys.stderr, level=logging.WARNING)
 
 API = "http://localhost:8000"
 mcp = FastMCP("tarefas-mcp")
@@ -22,4 +27,4 @@ def listar_tarefas() -> list:
 
 
 if __name__ == "__main__":
-    mcp.run()
+    mcp.run(transport="stdio")

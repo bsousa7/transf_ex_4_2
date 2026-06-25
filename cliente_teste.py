@@ -1,8 +1,19 @@
 import asyncio
+import ast
 import json
+import sys
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
+
+
+def _parse(content_item):
+    """Extrai JSON do conteúdo retornado pelo MCP tool, tolerando variações do SDK."""
+    text = content_item.text
+    try:
+        return json.loads(text)
+    except (json.JSONDecodeError, TypeError):
+        return ast.literal_eval(text)
 
 
 async def main() -> dict:
@@ -17,15 +28,16 @@ async def main() -> dict:
             criar = await session.call_tool("criar_tarefa", {"titulo": "tarefa via mcp"})
             listar = await session.call_tool("listar_tarefas", {})
 
-            criar_resultado = json.loads(criar.content[0].text)
-            listar_resultado = json.loads(listar.content[0].text)
-
             return {
                 "tools": nomes,
-                "criar_resultado": criar_resultado,
-                "listar_resultado": listar_resultado,
+                "criar_resultado": _parse(criar.content[0]),
+                "listar_resultado": _parse(listar.content[0]),
             }
 
 
 if __name__ == "__main__":
-    print(json.dumps(asyncio.run(main())))
+    try:
+        print(json.dumps(asyncio.run(main())))
+    except Exception as exc:
+        print(str(exc), file=sys.stderr)
+        sys.exit(1)
