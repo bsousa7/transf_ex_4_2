@@ -16,6 +16,20 @@ def _parse(content_item):
         return ast.literal_eval(text)
 
 
+def _parse_list(content):
+    """Reconstrói lista do resultado MCP, independente de como o SDK a serializou.
+
+    FastMCP pode devolver uma lista como um único TextContent com JSON array,
+    ou como múltiplos TextContent — um por elemento.
+    """
+    if not content:
+        return []
+    if len(content) == 1:
+        result = _parse(content[0])
+        return result if isinstance(result, list) else [result]
+    return [_parse(item) for item in content]
+
+
 async def main() -> dict:
     params = StdioServerParameters(command="python", args=["servidor_mcp.py"])
     async with stdio_client(params) as (read, write):
@@ -31,7 +45,7 @@ async def main() -> dict:
             return {
                 "tools": nomes,
                 "criar_resultado": _parse(criar.content[0]),
-                "listar_resultado": _parse(listar.content[0]),
+                "listar_resultado": _parse_list(listar.content),
             }
 
 
