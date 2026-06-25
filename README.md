@@ -1,42 +1,53 @@
-# Exercício 4.2 — MCP Server para API de Tarefas
+# Exercício 4.2 — MCP server local que consome a API (4.1)
 
-MCP server que expõe duas *tools* sobre a API REST de TODO list construída no exercício 4.1.
+**Aluno:** Bruno Aires de Sousa
+**Disciplina:** IDP-TD 2026
 
-## Arquitetura
+---
+
+## O que este projeto faz
+
+Um **MCP server local** que expõe tools para um agente de IA criar e listar
+tarefas, implementadas chamando a **API REST do Exercício 4.1**
+(`http://localhost:8000`). Ver contrato em [tutorial_4.2.md](tutorial_4.2.md#3-o-que-construir).
 
 ```
-Agente / LLM  ──MCP──▶  servidor_mcp.py  ──HTTP──▶  API 4.1 (localhost:8000)
+Agente / LLM ──MCP──▶ servidor_mcp.py ──HTTP──▶ API 4.1
 ```
 
-## Tools disponíveis
+## Estrutura
+
+- [servidor_mcp.py](servidor_mcp.py) — MCP server com as tools `criar_tarefa` e `listar_tarefas`
+- [cliente_teste.py](cliente_teste.py) — sobe o server via stdio, exercita as tools e imprime o envelope JSON
+- [requirements.txt](requirements.txt) — `mcp`, `httpx`
+- [`.autograde-exercise`](.autograde-exercise) — um arquivo com esse nome e o conteúdo: `4.2`
+
+## Tools expostas
 
 | Tool | Assinatura | O que faz |
-|------|-----------|-----------|
-| `criar_tarefa` | `criar_tarefa(titulo: str) -> dict` | `POST /tarefas` — cria e devolve a tarefa |
-| `listar_tarefas` | `listar_tarefas() -> list` | `GET /tarefas` — devolve todas as tarefas |
+|---|---|---|
+| `criar_tarefa` | `criar_tarefa(titulo: str) -> dict` | `POST /tarefas` na API e devolve a tarefa criada |
+| `listar_tarefas` | `listar_tarefas() -> list` | `GET /tarefas` na API e devolve a lista |
 
 ## Como rodar
 
-**Terminal A** — suba a API do 4.1:
 ```bash
+# Terminal A — API do 4.1 (reinicie p/ store limpo)
 uvicorn app.main:app --port 8000
-```
 
-**Terminal B** — neste repo:
-```bash
+# Terminal B — neste repo
 pip install -r requirements.txt
 python cliente_teste.py
 ```
 
-Saída esperada:
-```json
-{
-  "tools": ["criar_tarefa", "listar_tarefas"],
-  "criar_resultado": {"id": 1, "titulo": "tarefa via mcp", "concluida": false},
-  "listar_resultado": [{"id": 1, "titulo": "tarefa via mcp", "concluida": false}]
-}
+## Como validar
+
+Com a API do 4.1 no ar:
+
+```bash
+autograde validar 4.2
 ```
 
-## Reflexão
+## Reflexão — o que o MCP abstraiu
 
-O MCP escondeu o protocolo HTTP: o agente só precisa saber que existe `criar_tarefa(titulo)` — o método, a URL, o formato do corpo e os códigos de status da API são completamente transparentes para quem chama.
+O MCP escondeu o protocolo HTTP, pois quem chama criar_tarefa(titulo) não precisa saber que por baixo existe um POST /tarefas com um corpo JSON específico, um endpoint, uma porta e um código de status a verificar.
